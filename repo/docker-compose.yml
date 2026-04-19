@@ -1,0 +1,94 @@
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: runtime
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    networks:
+      - campuslearn
+
+  frontend-test:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: test
+    working_dir: /app
+    networks:
+      - campuslearn
+
+  e2e:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: e2e-runner
+    working_dir: /app
+    environment:
+      BASE_URL: "http://frontend:80"
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - campuslearn
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      APP_ENV: "${APP_ENV:-local}"
+      # Generate with: php artisan key:generate --show
+      APP_KEY: "${APP_KEY}"
+      APP_DEBUG: "${APP_DEBUG:-true}"
+      APP_URL: "${APP_URL:-http://localhost:8000}"
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: "${DB_DATABASE:-campuslearn}"
+      DB_USERNAME: "${DB_USERNAME:-campuslearn}"
+      DB_PASSWORD: "${DB_PASSWORD}"
+      QUEUE_CONNECTION: database
+      LOG_CHANNEL: "${LOG_CHANNEL:-stack}"
+      BACKUP_ENCRYPTION_KEY: "${BACKUP_ENCRYPTION_KEY}"
+      DIAGNOSTIC_ENCRYPTION_KEY: "${DIAGNOSTIC_ENCRYPTION_KEY}"
+    volumes:
+      - backend_storage:/var/www/html/storage/app
+      - backup_volume:/var/www/html/storage/backups
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - campuslearn
+
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: "${DB_DATABASE:-campuslearn}"
+      MYSQL_USER: "${DB_USERNAME:-campuslearn}"
+      MYSQL_PASSWORD: "${DB_PASSWORD}"
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - campuslearn
+
+volumes:
+  mysql_data:
+  backend_storage:
+  backup_volume:
+
+networks:
+  campuslearn:
+    driver: bridge
