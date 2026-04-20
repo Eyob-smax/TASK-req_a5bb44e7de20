@@ -112,7 +112,7 @@ case "$SUITE" in
     run_backend_unit
     run_backend_api
     run_frontend_unit
-    # E2E tests are NOT run by default. Use --suite=e2e to run them.
+    run_frontend_e2e
     ;;
   *)
     echo "Usage: bash run_tests.sh [--suite=unit|api|frontend-unit|e2e]"
