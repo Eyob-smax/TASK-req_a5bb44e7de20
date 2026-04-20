@@ -94,7 +94,8 @@ test.describe('Discussion flow', () => {
   test('edit window countdown visible on fresh post', async ({ page }) => {
     const opened = await openFirstThreadFromSection(page, 1)
     if (!opened) {
-      await expect(page.getByText('No threads yet')).toBeVisible()
+      // The EmptyState heading is rendered as an h2
+      await expect(page.locator('h2:has-text("No threads yet")')).toBeVisible()
       return
     }
     await expect(page.locator('.reply-form')).toBeVisible()
@@ -113,7 +114,8 @@ test.describe('Admin moderation controls', () => {
   test('admin sees moderation controls on thread detail', async ({ page }) => {
     const opened = await openFirstThreadFromSection(page, 1)
     if (!opened) {
-      await expect(page.getByText('No threads yet')).toBeVisible()
+      // The EmptyState heading is rendered as an h2
+      await expect(page.locator('h2:has-text("No threads yet")')).toBeVisible()
       return
     }
     const moderationButtons = page.getByRole('button', { name: /Hide|Restore|Lock/ })
