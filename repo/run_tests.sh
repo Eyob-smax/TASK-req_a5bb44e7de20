@@ -7,7 +7,6 @@
 set -euo pipefail
 
 # Always rebuild all images before running tests to avoid stale images
-log "Rebuilding all Docker images to avoid stale image runs..."
 docker compose build --no-cache
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
