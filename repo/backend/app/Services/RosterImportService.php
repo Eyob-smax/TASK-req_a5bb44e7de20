@@ -15,6 +15,7 @@ use App\Models\Section;
 use App\Models\Term;
 use App\Models\User;
 use App\Support\AuditLogger;
+use CampusLearn\Auth\PasswordRule;
 use CampusLearn\Auth\ScopeContext;
 use CampusLearn\Auth\ScopeResolutionService;
 use Illuminate\Support\Facades\DB;
@@ -25,6 +26,7 @@ final class RosterImportService
 {
     public function __construct(
         private readonly ScopeResolutionService $scopeService,
+        private readonly PasswordRule $passwordRule,
         private readonly AuditLogger $audit,
     ) {
     }
@@ -134,7 +136,7 @@ final class RosterImportService
                 ['email' => $email],
                 [
                     'name'     => $name,
-                    'password' => Hash::make(bin2hex(random_bytes(8))),
+                    'password' => Hash::make($this->generateImportPassword()),
                     'locale'   => 'en',
                     'status'   => AccountStatus::Active,
                 ],
@@ -166,5 +168,25 @@ final class RosterImportService
             'raw_row'          => $rawRow,
             'created_at'       => now(),
         ]);
+    }
+
+    private function generateImportPassword(): string
+    {
+        $minLength = $this->passwordRule->minLength();
+
+        // bin2hex produces a predictable even-length string; pick enough bytes for minLength.
+        $bytes = (int) ceil($minLength / 2);
+        $password = bin2hex(random_bytes(max(8, $bytes)));
+
+        while (mb_strlen($password) < $minLength) {
+            $password .= '0';
+        }
+
+        $violations = $this->passwordRule->validate($password);
+        if ($violations !== []) {
+            throw new RuntimeException('Generated password failed PasswordRule: ' . implode(',', $violations));
+        }
+
+        return $password;
     }
 }

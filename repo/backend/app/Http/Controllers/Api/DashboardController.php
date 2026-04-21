@@ -19,6 +19,8 @@ final class DashboardController extends Controller
 
     public function index(Request $request): JsonResponse
     {
+        $this->authorize('viewDashboard');
+
         $summary = $this->dashboardService->summaryFor($request->user());
         return ApiEnvelope::data($summary);
     }

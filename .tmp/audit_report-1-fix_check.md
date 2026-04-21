@@ -2,7 +2,7 @@
 
 ## 1. Source
 - Source report: .tmp/audit_report-1.md
-- Verification mode: Static-only (no runtime execution)
+- Verification mode: Static-only for audit_report-1 items (no runtime execution performed for these 6 issues)
 - Scope: Re-check all issues listed in Section 5 of the source report
 - Requested mode: All issues marked fixed
 
@@ -53,7 +53,7 @@
 - Verification evidence:
   - docs/api-spec.md:53
   - repo/backend/config/campuslearn.php:49
-  - repo/backend/app/Providers/AppServiceProvider.php:90
+  - repo/backend/app/Providers/AppServiceProvider.php:97
 
 ### Issue 6
 - Original: Backup trigger response may not deterministically identify dispatched job

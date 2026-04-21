@@ -22,6 +22,8 @@ final class GradeItemController extends Controller
 
     public function index(Section $section): JsonResponse
     {
+        $this->authorize('viewAny', [GradeItem::class, $section]);
+
         $items = $this->gradeItemService->list($section);
         return ApiEnvelope::data($items);
     }

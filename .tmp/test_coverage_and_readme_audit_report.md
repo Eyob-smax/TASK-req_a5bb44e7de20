@@ -126,9 +126,10 @@ Scope: static inspection only (no test or code execution)
 | POST /api/v1/admin/backups/trigger | yes | true no-mock HTTP | api_tests/BackupTest.php | api_tests/BackupTest.php:50 |
 
 ### API Test Classification
-1. True No-Mock HTTP: 42 files in `repo/backend/api_tests` issue real HTTP requests via Laravel HTTP test client (e.g., `getJson/postJson/patchJson/deleteJson`) with no mock declarations in API test files.
+1. True No-Mock HTTP: 48 files in `repo/backend/api_tests` (53 total, excluding `Pest.php`) issue real HTTP requests via Laravel HTTP test client (e.g., `getJson/postJson/patchJson/deleteJson`) with no mock declarations in API test files.
 2. HTTP with Mocking: none detected in backend API tests (no `Mockery`, `shouldReceive`, `vi.mock`, `jest.mock`, `sinon.stub` in `repo/backend/api_tests`).
 3. Non-HTTP (unit/integration without HTTP) inside API test tree:
+   - `repo/backend/api_tests/BackupScheduledCommandTest.php`
    - `repo/backend/api_tests/Domain/Billing/PenaltyTest.php`
    - `repo/backend/api_tests/Domain/Billing/RecurringSchedulerTest.php`
    - `repo/backend/api_tests/Domain/Orders/AutoCloseTest.php`
