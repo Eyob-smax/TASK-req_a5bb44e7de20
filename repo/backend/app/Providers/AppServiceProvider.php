@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Policies\AppointmentPolicy;
 use App\Policies\BackupPolicy;
+use App\Policies\BillSchedulePolicy;
 use App\Policies\BillPolicy;
 use App\Policies\CatalogItemPolicy;
 use App\Policies\CommentPolicy;
@@ -14,6 +15,7 @@ use App\Policies\DrDrillPolicy;
 use App\Policies\FeeCategoryPolicy;
 use App\Policies\GradeItemPolicy;
 use App\Policies\LedgerEntryPolicy;
+use App\Policies\MentionPolicy;
 use App\Policies\NotificationPolicy;
 use App\Policies\OrderPolicy;
 use App\Policies\PostPolicy;
@@ -56,6 +58,7 @@ use CampusLearn\Notifications\UnreadCounter;
 use CampusLearn\Observability\CircuitBreakerPolicy;
 use CampusLearn\Orders\OrderStateMachine;
 use CampusLearn\Orders\PaymentSettlementPolicy;
+use App\Models\User;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -160,10 +163,13 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Gate::define('viewDashboard', fn (User $user): bool => true);
+
         Gate::policy(\App\Models\Post::class, PostPolicy::class);
         Gate::policy(\App\Models\GradeItem::class, GradeItemPolicy::class);
         Gate::policy(\App\Models\Order::class, OrderPolicy::class);
         Gate::policy(\App\Models\Bill::class, BillPolicy::class);
+        Gate::policy(\App\Models\BillSchedule::class, BillSchedulePolicy::class);
         Gate::policy(\App\Models\Refund::class, RefundOperatorPolicy::class);
         Gate::policy(\App\Models\Enrollment::class, EnrollmentPolicy::class);
         Gate::policy(\App\Models\LedgerEntry::class, LedgerEntryPolicy::class);
@@ -174,6 +180,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(\App\Models\Appointment::class, AppointmentPolicy::class);
         Gate::policy(\App\Models\RosterImport::class, RosterImportPolicy::class);
         Gate::policy(\App\Models\Notification::class, NotificationPolicy::class);
+        Gate::policy(\App\Models\Mention::class, MentionPolicy::class);
         Gate::policy(\App\Models\CatalogItem::class, CatalogItemPolicy::class);
         Gate::policy(\App\Models\FeeCategory::class, FeeCategoryPolicy::class);
         Gate::policy(\App\Models\SensitiveWordRule::class, SensitiveWordRulePolicy::class);

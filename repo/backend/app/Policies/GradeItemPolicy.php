@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Policies;
 
+use App\Enums\EnrollmentStatus;
 use App\Enums\RoleName;
+use App\Models\Enrollment;
 use App\Models\GradeItem;
 use App\Models\Section;
 use App\Models\User;
@@ -16,6 +18,58 @@ final class GradeItemPolicy
     public function __construct(
         private readonly ScopeResolutionService $scopeService,
     ) {
+    }
+
+    public function viewAny(User $user, ?Section $section = null): bool
+    {
+        if ($section === null) {
+            return false;
+        }
+
+        if ($this->scopeService->canPerform($user->id, RoleName::Administrator, ScopeContext::global())) {
+            return true;
+        }
+        if ($this->scopeService->canPerform($user->id, RoleName::Registrar, ScopeContext::global())) {
+            return true;
+        }
+
+        $ancestry = [
+            'term'    => $section->term_id,
+            'course'  => $section->course_id,
+            'section' => $section->id,
+        ];
+
+        if ($this->scopeService->canPerform(
+            $user->id,
+            RoleName::Registrar,
+            ScopeContext::term($section->term_id),
+            $ancestry,
+        )) {
+            return true;
+        }
+
+        if ($this->scopeService->canPerform(
+            $user->id,
+            RoleName::Teacher,
+            ScopeContext::section($section->id),
+            $ancestry,
+        )) {
+            return true;
+        }
+
+        if ($this->scopeService->canPerform(
+            $user->id,
+            RoleName::Teacher,
+            ScopeContext::course($section->course_id),
+            $ancestry,
+        )) {
+            return true;
+        }
+
+        return Enrollment::where('user_id', $user->id)
+            ->where('section_id', $section->id)
+            ->where('status', EnrollmentStatus::Enrolled->value)
+            ->exists();
     }
 
     public function create(User $user, ?Section $section = null): bool

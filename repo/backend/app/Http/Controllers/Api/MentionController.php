@@ -14,6 +14,8 @@ final class MentionController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
+        $this->authorize('viewAny', Mention::class);
+
         $mentions = Mention::where('mentioned_user_id', $request->user()->id)
             ->orderByDesc('created_at')
             ->paginate(20);

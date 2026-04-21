@@ -10,9 +10,16 @@
 - Grade-item list endpoint now enforces section-aware authorization.
 
 2. Scope and Method
-- Static-only re-check of the exact issues listed in .tmp/audit_report-2.md.
-- No project startup, Docker, or test execution performed.
-- Conclusions are based only on current code and test artifacts.
+- Static re-check of the exact issues listed in .tmp/audit_report-2.md.
+- Targeted runtime validation performed in Docker to confirm the security fixes behave as expected.
+- Executed (docker compose backend container):
+  - repo/backend/api_tests/Domain/Coverage/EndpointGapClosureTest.php
+  - repo/backend/api_tests/Domain/Roster/ImportTest.php
+  - repo/backend/api_tests/Domain/GradeItems/CrudAndPublishTest.php
+- Additionally executed full backend suites:
+  - repo/backend/api_tests (all)
+  - repo/backend/unit_tests (all)
+- Conclusions are based on current code, test artifacts, and the test runs listed above.
 
 3. Issue-by-Issue Fix Check
 
@@ -20,18 +27,19 @@
 - Previous finding: Any authenticated user could patch any bill schedule by ID.
 - Current status: Fixed
 - Evidence:
-  - Authorization now enforced in controller before update: repo/backend/app/Http/Controllers/Api/BillingScheduleController.php:30
-  - BillSchedule policy exists and is registered: repo/backend/app/Policies/BillSchedulePolicy.php:13, repo/backend/app/Providers/AppServiceProvider.php:168
-  - Negative API test now checks outsider receives 403: repo/backend/api_tests/Domain/Coverage/EndpointGapClosureTest.php:234
+  - Authorization now enforced in controller before update: repo/backend/app/Http/Controllers/Api/BillingScheduleController.php:32
+  - BillSchedule policy exists and is registered: repo/backend/app/Policies/BillSchedulePolicy.php:13, repo/backend/app/Providers/AppServiceProvider.php:172
+  - Negative API test now checks outsider receives 403: repo/backend/api_tests/Domain/Coverage/EndpointGapClosureTest.php:228
 - Notes:
-  - Authorization model now restricts updates to finance staff via policy logic: repo/backend/app/Policies/BillSchedulePolicy.php:30
+  - Authorization model now restricts updates to owner or finance staff via policy logic: repo/backend/app/Policies/BillSchedulePolicy.php:31
 
 3.2 High: Missing authorization on grade-item list endpoint
 - Previous finding: Grade-item list could be fetched without explicit authorization.
 - Current status: Fixed
 - Evidence:
-  - Controller now authorizes index access: repo/backend/app/Http/Controllers/Api/GradeItemController.php:23
-  - GradeItem policy now has section-aware viewAny rule with enrollment/scope checks: repo/backend/app/Policies/GradeItemPolicy.php:19
+  - Controller now authorizes index access: repo/backend/app/Http/Controllers/Api/GradeItemController.php:25
+  - GradeItem policy now has section-aware viewAny rule with enrollment/scope checks: repo/backend/app/Policies/GradeItemPolicy.php:23
+  - Negative API test now checks outsider receives 403: repo/backend/api_tests/Domain/Coverage/EndpointGapClosureTest.php:330
 - Notes:
   - This closes the prior direct controller gap.
 
@@ -39,7 +47,8 @@
 - Previous finding: Inconsistent explicit policy use across authenticated endpoints.
 - Current status: Fixed
 - Evidence:
-  - Controller-level authorization coverage has been standardized for authenticated API paths in the current reviewed scope.
+  - Dashboard endpoint now has explicit authorization: repo/backend/app/Http/Controllers/Api/DashboardController.php:22 (backed by Gate definition at repo/backend/app/Providers/AppServiceProvider.php:166)
+  - Mentions endpoint now has explicit authorization and policy wiring: repo/backend/app/Http/Controllers/Api/MentionController.php:17, repo/backend/app/Policies/MentionPolicy.php:20, repo/backend/app/Providers/AppServiceProvider.php:183
   - Notification controller explicit authorization remains in place: repo/backend/app/Http/Controllers/Api/NotificationController.php:22, repo/backend/app/Http/Controllers/Api/NotificationController.php:55
 - Residual risk:
   - No material residual risk identified within static review scope for this finding.
@@ -48,8 +57,8 @@
 - Previous finding: PasswordRule existed but was not clearly enforced at input boundaries.
 - Current status: Fixed
 - Evidence:
-  - New enforcement in roster import-generated passwords using PasswordRule: repo/backend/app/Services/RosterImportService.php:36, repo/backend/app/Services/RosterImportService.php:39
-  - Rule remains configured/DI-wired: repo/backend/app/Providers/AppServiceProvider.php:82
+  - New enforcement in roster import-generated passwords using PasswordRule: repo/backend/app/Services/RosterImportService.php:139, repo/backend/app/Services/RosterImportService.php:173
+  - Rule remains configured/DI-wired: repo/backend/app/Providers/AppServiceProvider.php:83
 - Residual risk:
   - No material residual risk identified within static review scope for this finding.
 
@@ -57,8 +66,8 @@
 - Previous finding: Tests did not catch schedule-update and grade-item list authorization defects.
 - Current status: Fixed
 - Evidence:
-  - Billing schedule gap addressed with outsider 403 assertion: repo/backend/api_tests/Domain/Coverage/EndpointGapClosureTest.php:234
-  - Grade-item list authorization coverage is considered complete for the originally reported gap in the current fix-check scope.
+  - Billing schedule gap addressed with outsider 403 assertion: repo/backend/api_tests/Domain/Coverage/EndpointGapClosureTest.php:228
+  - Grade-item list gap addressed with outsider 403 assertion: repo/backend/api_tests/Domain/Coverage/EndpointGapClosureTest.php:330
 - Residual risk:
   - No material residual risk identified within static review scope for this finding.
 
@@ -66,9 +75,9 @@
 - Fixed items:
   - Billing schedule update authorization gap.
   - Grade-item list authorization gap in controller/policy wiring.
--  - Policy-check consistency across authenticated endpoints in the reviewed scope.
--  - Password minimum-length enforcement evidence across reviewed password-setting boundaries.
--  - Security test coverage updates for originally reported authorization concerns.
+  - Policy-check consistency across authenticated endpoints in the reviewed scope.
+  - Password minimum-length enforcement evidence across reviewed password-setting boundaries.
+  - Security test coverage updates for originally reported authorization concerns.
 - Partially fixed items:
   - None.
 - Not fixed items:

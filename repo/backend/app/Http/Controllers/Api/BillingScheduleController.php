@@ -21,12 +21,16 @@ final class BillingScheduleController extends Controller
 
     public function index(Request $request): JsonResponse
     {
+        $this->authorize('viewAny', BillSchedule::class);
+
         $schedules = $this->billingService->listSchedules($request->user());
         return ApiEnvelope::data($schedules);
     }
 
     public function update(UpdateBillingScheduleRequest $request, BillSchedule $billSchedule): JsonResponse
     {
+        $this->authorize('update', $billSchedule);
+
         $schedule = $this->billingService->updateSchedule(
             $request->user(),
             $billSchedule,

@@ -22,7 +22,7 @@
 - Main implementation areas mapped:
   - API surface and route registration: repo/backend/routes/api.php:48, repo/backend/routes/api.php:88, repo/backend/routes/api.php:226
   - Security/auth/session: repo/backend/app/Services/AuthService.php:33, repo/backend/config/campuslearn.php:48
-  - Authorization/policies: repo/backend/app/Providers/AppServiceProvider.php:157
+  - Authorization/policies: repo/backend/app/Providers/AppServiceProvider.php:166
   - Billing/order/refund engines: repo/backend/app/Services/BillingService.php:35, repo/backend/app/Services/PaymentService.php:28, repo/backend/app/Services/RefundService.php:31
   - Scheduler/HA/backup/observability: repo/backend/routes/console.php:3, repo/backend/app/Jobs/BackupMetadataJob.php:79, repo/backend/app/Services/CircuitBreakerService.php:32
   - Frontend offline/retry UX: repo/frontend/src/adapters/http.ts:80, repo/frontend/src/stores/offline.ts:21, repo/frontend/src/offline/cache.ts:9
@@ -37,7 +37,7 @@
 - 1.2 Material deviation from prompt
   - Conclusion: Partial Pass
   - Rationale: Core product scope is largely aligned; however, critical authorization defects materially weaken the prompt requirement for server-side authorization on every request and fine-grained scoped protection.
-  - Evidence: repo/backend/app/Http/Controllers/Api/BillingScheduleController.php:28, repo/backend/app/Http/Controllers/Api/GradeItemController.php:23, repo/backend/routes/api.php:108, repo/backend/routes/api.php:189
+  - Evidence: repo/backend/app/Http/Controllers/Api/BillingScheduleController.php:30, repo/backend/app/Http/Controllers/Api/GradeItemController.php:23, repo/backend/routes/api.php:108, repo/backend/routes/api.php:189
 
 4.2 Delivery Completeness
 - 2.1 Core explicit requirement coverage
@@ -57,7 +57,7 @@
 - 3.2 Maintainability/extensibility
   - Conclusion: Partial Pass
   - Rationale: Most modules are extensible/config-driven, but authorization is inconsistently enforced (policy in many endpoints vs missing checks in a few high-risk endpoints), reducing maintainability and security confidence.
-  - Evidence: repo/backend/config/campuslearn.php:3, repo/backend/app/Http/Controllers/Api/BillingScheduleController.php:28, repo/backend/app/Http/Controllers/Api/GradeItemController.php:23
+  - Evidence: repo/backend/config/campuslearn.php:3, repo/backend/app/Http/Controllers/Api/BillingScheduleController.php:30, repo/backend/app/Http/Controllers/Api/GradeItemController.php:23
 
 4.4 Engineering Details and Professionalism
 - 4.1 Error handling/logging/validation/API design
@@ -73,7 +73,7 @@
 - 5.1 Business goal and implicit constraints
   - Conclusion: Partial Pass
   - Rationale: Implementation demonstrates strong alignment with LAN/offline billing portal requirements, but authorization defects conflict with the prompt's strict server-side scoped permission boundary.
-  - Evidence: repo/frontend/src/stores/offline.ts:21, repo/frontend/src/adapters/http.ts:80, repo/backend/app/Http/Controllers/Api/BillingScheduleController.php:28
+  - Evidence: repo/frontend/src/stores/offline.ts:21, repo/frontend/src/adapters/http.ts:80, repo/backend/app/Http/Controllers/Api/BillingScheduleController.php:30
 
 4.6 Aesthetics (frontend)
 - 6.1 Visual/interaction quality fit
@@ -87,7 +87,7 @@
 - Severity: High
   - Title: Missing object-level authorization on billing schedule update
   - Conclusion: Fail
-  - Evidence: repo/backend/routes/api.php:189, repo/backend/app/Http/Controllers/Api/BillingScheduleController.php:28, repo/backend/app/Http/Requests/UpdateBillingScheduleRequest.php:10, repo/backend/app/Services/BillingService.php:257
+  - Evidence: repo/backend/routes/api.php:189, repo/backend/app/Http/Controllers/Api/BillingScheduleController.php:30, repo/backend/app/Http/Requests/UpdateBillingScheduleRequest.php:10, repo/backend/app/Services/BillingService.php:257
   - Impact: Any authenticated user can attempt to patch any schedule by ID; this is a direct cross-account financial control risk.
   - Minimum actionable fix: Add explicit authorization before update (policy/gate on BillSchedule ownership/scope) and enforce owner/scope checks in service as defense-in-depth.
 
@@ -101,14 +101,14 @@
 - Severity: Medium
   - Title: Prompt-mandated "policy checks on every request" not consistently applied
   - Conclusion: Partial Fail
-  - Evidence: repo/backend/app/Http/Controllers/Api/DashboardController.php:20, repo/backend/app/Http/Controllers/Api/MentionController.php:15, repo/backend/app/Http/Controllers/Api/NotificationController.php:22, repo/backend/app/Http/Controllers/Api/GradeItemController.php:23
+  - Evidence: repo/backend/app/Http/Controllers/Api/DashboardController.php:22, repo/backend/app/Http/Controllers/Api/MentionController.php:17, repo/backend/app/Http/Controllers/Api/NotificationController.php:22, repo/backend/app/Http/Controllers/Api/GradeItemController.php:25
   - Impact: Inconsistent authorization strategy increases drift risk and makes future regressions more likely.
   - Minimum actionable fix: Standardize controller-level authorize calls (or explicit policy middleware) for all authenticated endpoints, even if service-level scoping exists.
 
 - Severity: Medium
   - Title: Password minimum-length rule appears configured/tested but not enforced in request flows
   - Conclusion: Cannot Confirm Statistically (effective enforcement)
-  - Evidence: repo/backend/app/Services/AuthService.php:24, repo/backend/app/Providers/AppServiceProvider.php:81, repo/backend/src/Auth/PasswordRule.php:17, repo/backend/app/Http/Requests/LoginRequest.php:16
+  - Evidence: repo/backend/app/Services/AuthService.php:24, repo/backend/app/Providers/AppServiceProvider.php:83, repo/backend/src/Auth/PasswordRule.php:17, repo/backend/app/Http/Requests/LoginRequest.php:16
   - Impact: Explicit prompt requirement (>=10 chars) is not demonstrably enforced at password-setting boundaries from reviewed static paths.
   - Minimum actionable fix: Enforce PasswordRule at account creation/password change/import boundaries and add API tests proving rejection of shorter passwords.
 
@@ -130,7 +130,7 @@
   - Reasoning: auth middleware is applied broadly; however, route protection alone is insufficient where controller object checks are missing.
 - Object-level authorization
   - Conclusion: Fail
-  - Evidence: repo/backend/app/Http/Controllers/Api/BillingScheduleController.php:28, repo/backend/app/Services/BillingService.php:257, repo/backend/app/Http/Controllers/Api/GradeItemController.php:23
+  - Evidence: repo/backend/app/Http/Controllers/Api/BillingScheduleController.php:30, repo/backend/app/Services/BillingService.php:257, repo/backend/app/Http/Controllers/Api/GradeItemController.php:23
   - Reasoning: Missing object checks allow cross-object access/update risk.
 - Function-level authorization
   - Conclusion: Partial Pass
@@ -203,7 +203,7 @@
   - Remaining risk: severe cross-user or cross-section exposure defects can remain undetected.
 - Tenant/data isolation
   - Conclusion: insufficient
-  - Evidence: repo/backend/app/Http/Controllers/Api/BillingScheduleController.php:28, repo/backend/app/Http/Controllers/Api/GradeItemController.php:23
+  - Evidence: repo/backend/app/Http/Controllers/Api/BillingScheduleController.php:30, repo/backend/app/Http/Controllers/Api/GradeItemController.php:23
   - Remaining risk: users can access/modify data outside intended scope in identified paths.
 - Admin/internal protection
   - Conclusion: basically covered

@@ -211,6 +211,7 @@ test('appointment list show and update endpoints are covered with data assertion
 test('billing schedule list and update endpoints are covered with persistence assertions', function () {
     $user = User::factory()->create(['status' => AccountStatus::Active]);
     $schedule = BillSchedule::factory()->for($user)->create(['status' => BillScheduleStatus::Active]);
+    $outsider = User::factory()->asStudent()->create(['status' => AccountStatus::Active]);
 
     $this->actingAs($user)->getJson('/api/v1/billing-schedules')
         ->assertStatus(200)
@@ -221,6 +222,10 @@ test('billing schedule list and update endpoints are covered with persistence as
     ])->assertStatus(200)
       ->assertJsonPath('data.id', $schedule->id)
       ->assertJsonPath('data.status', BillScheduleStatus::Paused->value);
+
+    $this->actingAs($outsider)->patchJson("/api/v1/billing-schedules/{$schedule->id}", [
+        'status' => BillScheduleStatus::Active->value,
+    ])->assertStatus(403);
 
     $this->assertDatabaseHas('bill_schedules', ['id' => $schedule->id, 'status' => BillScheduleStatus::Paused->value]);
 });
@@ -319,6 +324,10 @@ test('section list and grade item list update endpoints are covered', function (
     $this->actingAs($user)->getJson("/api/v1/sections/{$section->id}/grade-items")
         ->assertStatus(200)
         ->assertJsonPath('data.0.id', $item->id);
+
+    $outsider = User::factory()->asStudent()->create(['status' => AccountStatus::Active]);
+    $this->actingAs($outsider)->getJson("/api/v1/sections/{$section->id}/grade-items")
+        ->assertStatus(403);
 
     $this->actingAs($user)->patchJson("/api/v1/sections/{$section->id}/grade-items/{$item->id}", [
         'title' => 'Updated Coverage Quiz',

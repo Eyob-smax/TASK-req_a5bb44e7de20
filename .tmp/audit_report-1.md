@@ -81,7 +81,7 @@ Rationale:
   - docs/endpoint-inventory.md:17-19 (references api_tests/Domain/Auth/* paths)
   - repo/backend/api_tests/Auth/LoginTest.php:1, repo/backend/api_tests/Auth/LogoutTest.php:1, repo/backend/api_tests/Auth/MeTest.php:1 (actual locations differ)
   - docs/api-spec.md:67 (token expiry says SANCTUM_TOKEN_EXPIRY default 60)
-  - repo/backend/config/campuslearn.php:49 and repo/backend/app/Providers/AppServiceProvider.php:90 (effective auth token TTL default wired to 720 via CL_TOKEN_TTL_MINUTES)
+- repo/backend/config/campuslearn.php:49 and repo/backend/app/Providers/AppServiceProvider.php:97 (effective auth token TTL default wired to 720 via CL_TOKEN_TTL_MINUTES)
 - Manual verification note:
   - Static mismatch is provable; runtime confirmation not needed.
 
@@ -244,7 +244,7 @@ Rationale:
 - Evidence:
   - docs/api-spec.md:67 (default 60 via SANCTUM_TOKEN_EXPIRY)
   - repo/backend/config/campuslearn.php:49 (default 720 via CL_TOKEN_TTL_MINUTES)
-  - repo/backend/app/Providers/AppServiceProvider.php:90 and repo/backend/app/Services/AuthService.php:113 (AuthService uses 720 default path)
+- repo/backend/app/Providers/AppServiceProvider.php:97 and repo/backend/app/Services/AuthService.php:113 (AuthService uses 720 default path)
 - Impact:
   - Operators/reviewers can misconfigure session policy and overestimate token short-liveness.
 - Minimum actionable fix:
