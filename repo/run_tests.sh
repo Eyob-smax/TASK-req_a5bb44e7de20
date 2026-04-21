@@ -6,11 +6,11 @@
 
 set -euo pipefail
 
-# Always rebuild all images before running tests to avoid stale images
-docker compose build --no-cache
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
+
+# Always rebuild all images before running tests to avoid stale images
+docker compose build --no-cache
 
 SUITE="${1:-all}"
 
