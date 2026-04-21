@@ -27,11 +27,18 @@ async function openCreateThreadModal(page: Page) {
 async function openFirstThreadFromSection(page: Page, sectionId = 1): Promise<boolean> {
   await page.goto(`${BASE}/sections/${sectionId}/threads`)
   await expect(page.locator('.thread-list-view')).toBeVisible({ timeout: 15000 })
+  // Wait for initial fetch to complete so we don't mis-detect an empty list while loading.
+  await expect(page.locator('.loading-spinner')).toHaveCount(0, { timeout: 15000 })
   const threadLink = page.locator('.thread-list__link').first()
   if ((await threadLink.count()) === 0) return false
   await expect(threadLink).toBeVisible({ timeout: 15000 })
   await threadLink.click()
   return true
+}
+
+async function expectNoThreadsEmptyState(page: Page) {
+  // EmptyState renders its heading as a <p> with class "empty-state__heading".
+  await expect(page.locator('.empty-state__heading', { hasText: 'No threads yet' })).toBeVisible()
 }
 
 test.describe('Discussion flow', () => {
@@ -51,8 +58,7 @@ test.describe('Discussion flow', () => {
   test('student can open a thread and see posts', async ({ page }) => {
     const opened = await openFirstThreadFromSection(page, 1)
     if (!opened) {
-      // The EmptyState heading is rendered as an h2
-      await expect(page.locator('h2:has-text("No threads yet")')).toBeVisible()
+      await expectNoThreadsEmptyState(page)
       return
     }
     await expect(page.locator('.thread-detail__title')).toBeVisible()
@@ -94,8 +100,7 @@ test.describe('Discussion flow', () => {
   test('edit window countdown visible on fresh post', async ({ page }) => {
     const opened = await openFirstThreadFromSection(page, 1)
     if (!opened) {
-      // The EmptyState heading is rendered as an h2
-      await expect(page.locator('h2:has-text("No threads yet")')).toBeVisible()
+      await expectNoThreadsEmptyState(page)
       return
     }
     await expect(page.locator('.reply-form')).toBeVisible()
@@ -114,8 +119,7 @@ test.describe('Admin moderation controls', () => {
   test('admin sees moderation controls on thread detail', async ({ page }) => {
     const opened = await openFirstThreadFromSection(page, 1)
     if (!opened) {
-      // The EmptyState heading is rendered as an h2
-      await expect(page.locator('h2:has-text("No threads yet")')).toBeVisible()
+      await expectNoThreadsEmptyState(page)
       return
     }
     const moderationButtons = page.getByRole('button', { name: /Hide|Restore|Lock/ })
