@@ -41,19 +41,8 @@ upsert_env() {
 
 ensure_env_files() {
   if [[ ! -f .env ]]; then
-    log "Creating repo/.env with local defaults"
-    cat > .env <<EOF
-APP_ENV=local
-APP_DEBUG=true
-APP_URL=http://localhost:8000
-APP_KEY=${APP_KEY:-$DEFAULT_APP_KEY}
-DB_DATABASE=${DB_DATABASE:-campuslearn}
-DB_USERNAME=${DB_USERNAME:-campuslearn}
-DB_PASSWORD=${DB_PASSWORD:-$DEFAULT_DB_PASSWORD}
-MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-$DEFAULT_MYSQL_ROOT_PASSWORD}
-BACKUP_ENCRYPTION_KEY=${BACKUP_ENCRYPTION_KEY:-$DEFAULT_BACKUP_ENCRYPTION_KEY}
-DIAGNOSTIC_ENCRYPTION_KEY=${DIAGNOSTIC_ENCRYPTION_KEY:-$DEFAULT_DIAGNOSTIC_ENCRYPTION_KEY}
-EOF
+    log "Creating repo/.env from repo/.env.example"
+    cp .env.example .env
   fi
 
   if [[ ! -f backend/.env ]]; then
@@ -61,6 +50,11 @@ EOF
     cp backend/.env.example backend/.env
   fi
 
+  upsert_env .env APP_KEY "${APP_KEY:-$DEFAULT_APP_KEY}"
+  upsert_env .env DB_PASSWORD "${DB_PASSWORD:-$DEFAULT_DB_PASSWORD}"
+  upsert_env .env MYSQL_ROOT_PASSWORD "${MYSQL_ROOT_PASSWORD:-$DEFAULT_MYSQL_ROOT_PASSWORD}"
+  upsert_env .env BACKUP_ENCRYPTION_KEY "${BACKUP_ENCRYPTION_KEY:-$DEFAULT_BACKUP_ENCRYPTION_KEY}"
+  upsert_env .env DIAGNOSTIC_ENCRYPTION_KEY "${DIAGNOSTIC_ENCRYPTION_KEY:-$DEFAULT_DIAGNOSTIC_ENCRYPTION_KEY}"
   upsert_env backend/.env APP_KEY "${APP_KEY:-$DEFAULT_APP_KEY}"
   upsert_env backend/.env DB_PASSWORD "${DB_PASSWORD:-$DEFAULT_DB_PASSWORD}"
   upsert_env backend/.env MYSQL_ROOT_PASSWORD "${MYSQL_ROOT_PASSWORD:-$DEFAULT_MYSQL_ROOT_PASSWORD}"

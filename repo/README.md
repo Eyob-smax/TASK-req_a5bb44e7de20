@@ -108,9 +108,9 @@ For local development, both startup paths are now zero-config:
 
 - `docker-compose up --build` (hyphenated form) is supported.
 - `docker compose up --build` works without pre-creating env files.
-- `bash run_tests.sh` auto-creates `repo/.env` and `repo/backend/.env` when missing.
+- `bash run_tests.sh` auto-creates `repo/.env` from `repo/.env.example` and `repo/backend/.env` from `repo/backend/.env.example` when missing.
 
-You can still override any value via shell env vars or `repo/.env`.
+You can still override any value via shell env vars or the runtime-generated `repo/.env`.
 
 Defaults are local-only and include:
 
