@@ -32,6 +32,9 @@ RUN composer install --no-interaction --no-progress --optimize-autoloader --no-s
 # Copy application files
 COPY . .
 
+# Bootstrap .env from example; real values come from docker-compose environment: overrides
+RUN cp .env.example .env
+
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
